@@ -9,6 +9,7 @@ RUN apt-get update \
         libffi-dev \
         libssl-dev \
         git \
+        jq \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

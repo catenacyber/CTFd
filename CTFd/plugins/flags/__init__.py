@@ -1,4 +1,9 @@
 import re
+import base64
+import subprocess
+import tempfile
+import os
+import json
 
 from CTFd.plugins import register_plugin_assets_directory
 
@@ -68,8 +73,31 @@ class CTFdRegexFlag(BaseFlag):
 
         return res and res.group() == provided
 
+class CTFdJqFlag(BaseFlag):
+    name = "jq"
+    templates = {
+        "create": "/plugins/flags/assets/jq/create.html",
+        "update": "/plugins/flags/assets/jq/edit.html",
+    }
 
-FLAG_CLASSES = {"static": CTFdStaticFlag, "regex": CTFdRegexFlag}
+    @staticmethod
+    def compare(chal_key_obj, provided):
+        saved = chal_key_obj.content
+
+        try:
+            with tempfile.NamedTemporaryFile() as tmp:
+                subprocess.call(["jq", "-s", provided, os.path.join('/opt/CTFd/etc/json', chal_key_obj.data)], stdout=tmp)
+                tmp.seek(0)
+                provided = tmp.read()
+                tmp.close()
+                pj = json.loads(provided)
+                sj = json.loads(saved)
+                return pj == sj
+        except e:
+            raise FlagException("Regex parse error occured") from e
+        raise False
+
+FLAG_CLASSES = {"static": CTFdStaticFlag, "regex": CTFdRegexFlag, "jq": CTFdJqFlag}
 
 
 def get_flag_class(class_id):
