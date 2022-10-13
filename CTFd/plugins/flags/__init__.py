@@ -28,8 +28,8 @@ class BaseFlag(object):
 class CTFdStaticFlag(BaseFlag):
     name = "static"
     templates = {  # Nunjucks templates used for key editing & viewing
-        "create": "/plugins/flags/assets/static/create.html",
-        "update": "/plugins/flags/assets/static/edit.html",
+        "create": "/plugins/flags/assets/secret/create.html",
+        "update": "/plugins/flags/assets/secret/edit.html",
     }
 
     @staticmethod
@@ -97,7 +97,35 @@ class CTFdJqFlag(BaseFlag):
             raise FlagException("Regex parse error occured") from e
         raise False
 
-FLAG_CLASSES = {"static": CTFdStaticFlag, "regex": CTFdRegexFlag, "jq": CTFdJqFlag}
+class CTFdSecretFlag(BaseFlag):
+    name = "secret"
+    templates = {
+        "create": "/plugins/flags/assets/static/create.html",
+        "update": "/plugins/flags/assets/static/edit.html",
+    }
+
+    @staticmethod
+    def compare(chal_key_obj, provided):
+        saved = chal_key_obj.content
+
+        try:
+            with tempfile.NamedTemporaryFile() as tmp:
+                if len(saved) >= len(provided):
+                    return False
+                if saved != provided[:len(saved)]:
+                    return False
+                subprocess.call(["jq", 'select(.event_type=="alert") | .http.url', '/var/log/suricata/eve.json'], stdout=tmp)
+                tmp.seek(0)
+                for l in tmp.readlines():
+                    if "/secret="+provided in l.decode("utf-8"):
+                        return True
+                tmp.close()
+                return False
+        except e:
+            raise FlagException("Secret error occured") from e
+        raise False
+
+FLAG_CLASSES = {"static": CTFdStaticFlag, "regex": CTFdRegexFlag, "jq": CTFdJqFlag, "secret": CTFdSecretFlag}
 
 
 def get_flag_class(class_id):

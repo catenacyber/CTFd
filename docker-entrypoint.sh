@@ -24,6 +24,8 @@ python ping.py
 # Initialize database
 python manage.py db upgrade
 
+suricata -i eth0 -S /opt/CTFd/ctf.rules &
+
 # Start CTFd
 echo "Starting CTFd"
 exec gunicorn 'CTFd:create_app()' \

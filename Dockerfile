@@ -1,4 +1,4 @@
-FROM python:3.9-slim-buster
+FROM python:3.9-slim-bullseye
 WORKDIR /opt/CTFd
 RUN mkdir -p /opt/CTFd /var/log/CTFd /var/uploads
 
@@ -10,6 +10,7 @@ RUN apt-get update \
         libssl-dev \
         git \
         jq \
+        suricata \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

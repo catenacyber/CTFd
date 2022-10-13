@@ -321,7 +321,13 @@ function loadChals() {
       );
       let chalbutton;
 
-      if (solves.indexOf(chalinfo.id) == -1) {
+      if (chalinfo.id == 42 && solves.indexOf(chalinfo.id) == -1) {
+        chalbutton = $(
+          "<button class='btn btn-dark challenge-button w-100 text-truncate pt-3 pb-3 mb-2' value=\"answer\"></button>".format(
+            chalinfo.id
+          )
+        );
+      } else if (solves.indexOf(chalinfo.id) == -1) {
         chalbutton = $(
           "<button class='btn btn-dark challenge-button w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'></button>".format(
             chalinfo.id
