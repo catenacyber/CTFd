@@ -204,9 +204,12 @@ class ChallengeList(Resource):
                 continue
 
             # Challenge passes all checks, add it to response
+            resp_id = challenge.id
+            if challenge.id == 42:
+                resp_id = "FIXME"
             response.append(
                 {
-                    "id": challenge.id,
+                    "id": resp_id,
                     "type": challenge_type.name,
                     "name": challenge.name,
                     "value": challenge.value,
