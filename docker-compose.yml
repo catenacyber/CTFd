@@ -5,6 +5,8 @@ services:
     build: .
     user: root
     restart: always
+    cap_add:
+      - NET_ADMIN
     ports:
       - "8000:8000"
     environment:

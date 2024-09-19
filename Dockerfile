@@ -36,7 +36,7 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update --fix-missing && apt-get install -y suricata jq
+RUN echo "deb http://http.debian.net/debian bookworm-backports main" > /etc/apt/sources.list.d/backports.list && apt-get update --fix-missing && apt-get install -y jq  && apt-get install -y suricata -t bookworm-backports
 
 COPY --chown=1001:1001 . /opt/CTFd
 

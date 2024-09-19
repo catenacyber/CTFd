@@ -62,19 +62,24 @@ suricata_namespace = Namespace(
 )
 
 @suricata_namespace.route("/secret_flag")
-class ChallengeTypes(Resource):
+class SuricataFlag(Resource):
+    @during_ctf_time_only
+    @require_verified_emails
     def get(self):
         found = False
+        user = get_current_user()
         with tempfile.NamedTemporaryFile() as tmp:
-            subprocess.call(["jq", 'select(.event_type=="alert") | .http.url', '/var/log/suricata/eve.json'], stdout=tmp)
+            subprocess.call(["jq", "-r", 'select(.alert.signature_id==2024) | .metadata.flowvars[0].winner', '/var/log/suricata/eve.json'], stdout=tmp)
             tmp.seek(0)
             for l in tmp.readlines():
-                if "/secret=" in l.decode("utf-8"):
+                if l.decode("utf-8")[:-1] == user.name:
                     found = True
                     break
             tmp.close()
         if found:
-            response = {"flag": "toto"}
+            flag = Flags.query.filter_by(challenge_id=42).first_or_404()
+            schema = FlagSchema()
+            response = schema.dump(flag)
             return {"success": True, "data": response}
         else:
-            return {"success": False, "help": "You need to have an alert for sid 2024 and your user name"}
+            return {"success": False, "help": "You need to have an alert for sid 2024 and your user name as winner : %s" % user.name, "hint": "try /api/v1/suricata/test_rule and /api/v1/suricata/check_alerts"}

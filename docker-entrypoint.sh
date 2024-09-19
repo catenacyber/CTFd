@@ -28,6 +28,7 @@ fi
 # Initialize database
 flask db upgrade
 
+mkdir -p  /var/lib/suricata/data/ && touch /var/lib/suricata/data/danger.csv
 echo "Starting Suricata"
 suricata -i eth0 -S /opt/CTFd/ctf.rules &
 
