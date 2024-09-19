@@ -31,7 +31,7 @@ flask db upgrade
 mkdir -p  /var/lib/suricata/data/ && touch /var/lib/suricata/data/danger.csv
 cp /opt/CTFd/threshold.config /etc/suricata/
 echo "Starting Suricata"
-suricata -i eth0 -S /opt/CTFd/.data/CTFd/uploads/4f6b77ac416cbf4395dfe912a155361b/ctf.rules &
+suricata -i eth0 -S /opt/CTFd/.data/CTFd/uploads/361e526a0677228a2cbc091aec2209cc/ctf.rules &
 
 # Start CTFd
 echo "Starting CTFd"

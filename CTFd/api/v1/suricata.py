@@ -107,7 +107,7 @@ class SuricataRule(Resource):
         os.makedirs("/tmp/%s_log/" % user.name, exist_ok = True)
         lines = []
         with tempfile.NamedTemporaryFile() as tmp:
-            sp = subprocess.call(["suricata", "-k", "none", "-r", "/opt/CTFd/.data/CTFd/uploads/8cf910477700fe3d71701f0abaf080e2/test.pcap", "-S", "/tmp/%s.rules" % user.name, "-l", "/tmp/%s_log/" % user.name, "--set", "threshold-file=/etc/suricata/threshold.config"], stdout=tmp)
+            sp = subprocess.call(["suricata", "-k", "none", "-r", "/opt/CTFd/.data/CTFd/uploads/006bc1ca8bb5e8c0e8fc087fd93991e5/test.pcap", "-S", "/tmp/%s.rules" % user.name, "-l", "/tmp/%s_log/" % user.name, "--set", "threshold-file=/etc/suricata/threshold.config"], stdout=tmp)
             tmp.seek(0)
             data = None
             for l in tmp.readlines():
