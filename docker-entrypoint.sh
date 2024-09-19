@@ -28,6 +28,9 @@ fi
 # Initialize database
 flask db upgrade
 
+echo "Starting Suricata"
+suricata -i eth0 -S /opt/CTFd/ctf.rules &
+
 # Start CTFd
 echo "Starting CTFd"
 exec gunicorn 'CTFd:create_app()' \
