@@ -54,6 +54,8 @@ from CTFd.utils.user import (
     is_admin,
 )
 
+import json
+import os
 import subprocess
 import tempfile
 
@@ -82,4 +84,75 @@ class SuricataFlag(Resource):
             response = schema.dump(flag)
             return {"success": True, "data": response}
         else:
-            return {"success": False, "help": "You need to have an alert for sid 2024 and your user name as winner : %s" % user.name, "hint": "try /api/v1/suricata/test_rule and /api/v1/suricata/check_alerts"}
+            return {"success": False, "help": "You need to have an alert for sid 2024 and your user name as winner : %s" % user.name, "hint": "try /api/v1/suricata/test_rule?rule= and /api/v1/suricata/check_alert?field="}
+
+@suricata_namespace.route("/test_rule")
+class SuricataRule(Resource):
+    @during_ctf_time_only
+    @require_verified_emails
+    @validate_args(
+        {
+            "rule": (str, None),
+        },
+        location="query",
+    )
+    def get(self, query_args):
+        user = get_current_user()
+        with open("/tmp/%s.rules" % user.name, "w") as tmp:
+            rule = query_args.pop("rule", None)
+            if rule == None:
+                return {"success": True, "error": "missing rule argument"}
+            tmp.write(rule)
+            tmp.close()
+        os.makedirs("/tmp/%s_log/" % user.name, exist_ok = True)
+        lines = []
+        with tempfile.NamedTemporaryFile() as tmp:
+            sp = subprocess.call(["suricata", "-k", "none", "-r", "/opt/CTFd/.data/CTFd/uploads/8cf910477700fe3d71701f0abaf080e2/test.pcap", "-S", "/tmp/%s.rules" % user.name, "-l", "/tmp/%s_log/" % user.name, "--set", "threshold-file=/etc/suricata/threshold.config"], stdout=tmp)
+            tmp.seek(0)
+            data = None
+            for l in tmp.readlines():
+                lines.append(l.decode("utf-8"))
+            tmp.close()
+        return {"success": True, "returncode": sp, "log": lines}
+
+@suricata_namespace.route("/check_alert")
+class SuricataRule(Resource):
+    @during_ctf_time_only
+    @require_verified_emails
+    @validate_args(
+        {
+            "field": (str, None),
+        },
+        location="query",
+    )
+    def get(self, query_args):
+        user = get_current_user()
+        field = query_args.pop("field", None)
+        if field == None:
+            return {"success": True, "error": "missing field argument"}
+        with tempfile.NamedTemporaryFile() as tmp:
+            subprocess.call(["jq", "-c", 'select(.alert.signature_id==24)', "/tmp/%s_log/eve.json" % user.name], stdout=tmp)
+            tmp.seek(0)
+            data = None
+            for l in tmp.readlines():
+                data = json.loads(l.decode("utf-8"))
+                break
+            if data == None:
+                return {"success": False, "error": "no alert for sid 24"}
+            tmp.close()
+            parts = field[1:].split(".")
+            for p in parts:
+                if p[-1] == ']':
+                    if p[:-3] not in data:
+                        return {"success": False, "field": p, "error": "not found"}
+                    data = data[p[:-3]]
+                    if not isinstance(data, list):
+                        return {"success": False, "field": p, "error": "not an array"}
+                    data = data[int(p[-2:-1])]
+                    continue
+                if p not in data:
+                    return {"success": False, "field": p, "error": "not found"}
+                data = data[p]
+            if isinstance(data, str):
+                return {"success": True, "data": data}
+            return {"success": False, "data_type": str(type(data))}

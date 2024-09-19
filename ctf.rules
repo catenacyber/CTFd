@@ -1,4 +1,0 @@
-# suricon 2022
-alert http any any -> any any (msg: "Secret rule"; sid: 1; http.uri; content:"/secret="; startswith;)
-# suricon 2024
-alert http any any -> any any (msg: "Secret rule"; sid: 2024; http.uri; content:"/secret="; startswith;)
